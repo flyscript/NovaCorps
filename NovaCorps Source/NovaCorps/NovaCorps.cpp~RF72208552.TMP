@@ -1,0 +1,804 @@
+/*
+	NovaCorps - NovaCorps.cpp
+		William Chapman
+
+		12/11/2018 10:38:29 AM
+
+	This cpp file describes the main game class
+
+*/
+
+//Include helper
+#include <cstdlib>
+#include <iostream>
+#include "NovaCorps.h"
+#include <SFML/Window.hpp>
+#include <thread>
+#include "r.h"
+
+//Constructor
+NovaCorps::NovaCorps() :
+m_gameMode(GameMode::menu),
+m_round(0),
+m_renderWindow(new sf::RenderWindow(sf::VideoMode(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height), "NovaCorps")),
+m_camera(new OrthographicCamera(*m_renderWindow)),
+m_scene(new Scene(*m_camera)),
+m_pPlayerRunningAnimation(new Animation()),
+l_pPlayerRunningAnimState0(new AnimationState("Assets/Images/Player/player0.png", sf::Color::White, 0.1f, 0.f, AnimationBlendingMode::snap)),
+l_pPlayerRunningAnimState1(new AnimationState("Assets/Images/Player/player1.png", sf::Color::White, 0.1f, 0.f, AnimationBlendingMode::snap)),
+m_pPlayerDieAnimation(new Animation()),
+m_pPlayerDieAnimState0(new AnimationState("Assets/Images/Enemies/Drone/drone0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pPlayerDieAnimState1(new AnimationState("Assets/Images/Enemies/Drone/drone1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneRunningAnimation(new Animation()),
+m_pDroneRunningAnimState0(new AnimationState("Assets/Images/Enemies/Drone/drone0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneRunningAnimState1(new AnimationState("Assets/Images/Enemies/Drone/drone1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneDieAnimation(new Animation()),
+m_pDroneDieAnimState0(new AnimationState("Assets/Images/Enemies/Drone/drone0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneDieAnimState1(new AnimationState("Assets/Images/Enemies/Drone/drone0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderRunningAnimation(new Animation()),
+m_pInvaderRunningAnimState0(new AnimationState("Assets/Images/Enemies/Invader/invader0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderRunningAnimState1(new AnimationState("Assets/Images/Enemies/Invader/invader1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderDieAnimation(new Animation()),
+m_pInvaderDieAnimState0(new AnimationState("Assets/Images/Enemies/Invader/invader0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderDieAnimState1(new AnimationState("Assets/Images/Enemies/Invader/invader0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerRunningAnimation(new Animation()),
+m_pSeekerRunningAnimState0(new AnimationState("Assets/Images/Enemies/Seeker/seeker0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerRunningAnimState1(new AnimationState("Assets/Images/Enemies/Seeker/seeker1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerDieAnimation(new Animation()),
+m_pSeekerDieAnimState0(new AnimationState("Assets/Images/Enemies/Seeker/seeker0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerDieAnimState1(new AnimationState("Assets/Images/Enemies/Seeker/seeker0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pPlayerMissileAnimation(new Animation()),
+m_pPlayerMissileAnimState0(new AnimationState("Assets/Images/Missiles/playerMissile0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pPlayerMissileAnimState1(new AnimationState("Assets/Images/Missiles/playerMissile1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneMissileAnimation(new Animation()),
+m_pDroneMissileAnimState0(new AnimationState("Assets/Images/Missiles/droneMissile0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pDroneMissileAnimState1(new AnimationState("Assets/Images/Missiles/droneMissile1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderMissileAnimation(new Animation()),
+m_pInvaderMissileAnimState0(new AnimationState("Assets/Images/Missiles/invaderMissile0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pInvaderMissileAnimState1(new AnimationState("Assets/Images/Missiles/invaderMissile1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerMissileAnimation(new Animation()),
+m_pSeekerMissileAnimState0(new AnimationState("Assets/Images/Missiles/seekerMissile0.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pSeekerMissileAnimState1(new AnimationState("Assets/Images/Missiles/seekerMissile1.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_pTitleAnimation(new Animation()),
+m_pTitleAnimState(new AnimationState("Assets/Images/UI/title.png", sf::Color::White, 10.2f, 0.f, AnimationBlendingMode::snap)),
+m_pGameOverAnimation(new Animation()),
+m_pGameOverAnimState(new AnimationState("Assets/Images/UI/gameOver.png", sf::Color::White, 5.f, 0.f, AnimationBlendingMode::snap)),
+m_pParticleAnimation(new Animation()),
+m_pParticleAnimState(new AnimationState("Assets/Images/Particles/particle.png", sf::Color::White, 0.2f, 0.2f, AnimationBlendingMode::snap)),
+m_titleCard(new Graphic(nullptr, sf::FloatRect(600, 430.f, 0.f, 0.f), sf::FloatRect(960.f, 300.f, 0.f, 0.f), false)),
+m_player(new Player()),
+m_droneBaseMissile(new InvaderMissile()), //TODO: see if I can initialise with a player too (have InvaderMissile() and overload InvaderMissile(player*)
+m_invaderBaseMissile(new InvaderMissile()),
+m_seekerBaseMissile(new InvaderMissile()),
+m_lastUpdate(std::chrono::system_clock::now()),
+m_lastSecond(std::chrono::system_clock::now()),
+m_updatesThisSecond(0),
+m_framesThisSecond(0),
+m_logicThisSecond(0),
+m_shakeCam(false)
+{
+
+	//Set render window to be fullscreen
+	m_renderWindow->setPosition(sf::Vector2i(0, 0));
+
+	//Set up camera
+	m_camera->setPosition(sf::VideoMode::getDesktopMode().width / 2.f, sf::VideoMode::getDesktopMode().height / 2.f);
+	
+	//Load textures
+	load();
+
+	//Starfield
+	//TODO: look at active and simulated property checks in scene.render() so particles can be added to scene and updated but not rendered
+	Particle l_particle;
+	l_particle.setScale(3.f, 3.f);
+	
+	m_stars = new ParticleEmitter(m_pParticleAnimation, l_particle, true, false);
+	m_stars->emitting(true);
+	m_stars->maxParticles(200);
+	m_stars->lifeTime(11.0f);
+	m_stars->emissionRate(14.7f);
+	m_stars->maxRange(2000.f);
+	m_stars->position(sf::Vector2f(960.f, 100.f));
+	m_stars->size(sf::Vector2f(1920.f, 0.f));
+	m_stars->emissionVelocity(sf::Vector2f(0.f, 80.f));
+	m_stars->scaleSpeed(100.f);
+
+	m_stars2 = new ParticleEmitter(m_pParticleAnimation, l_particle, true, false);
+	m_stars2->emitting(true);
+	m_stars2->maxParticles(200);
+	m_stars2->lifeTime(14.67f);
+	m_stars2->emissionRate(11.f);
+	m_stars2->maxRange(2000.f);
+	m_stars2->position(sf::Vector2f(960.f, 100.f));
+	m_stars2->size(sf::Vector2f(1920.f, 0.f));
+	m_stars2->emissionVelocity(sf::Vector2f(0.f, 60.f));
+	m_stars2->scaleSpeed(100.f);
+
+	m_stars3 = new ParticleEmitter(m_pParticleAnimation, l_particle, true, false);
+	m_stars3->emitting(true);
+	m_stars3->maxParticles(200);
+	m_stars3->lifeTime(22.f);
+	m_stars3->emissionRate(7.3f);
+	m_stars3->maxRange(2000.f);
+	m_stars3->position(sf::Vector2f(960.f, 100.f));
+	m_stars3->size(sf::Vector2f(1920.f, 0.f));
+	m_stars3->emissionVelocity(sf::Vector2f(0.f, 40.f));
+	m_stars3->scaleSpeed(100.f);
+
+	//Set title card position
+	m_titleCard->size(sf::FloatRect(600.f, 430.f, 0.f, 0.f));
+	m_titleCard->animation(m_pTitleAnimation);
+	m_scene->addGraphic(m_titleCard);
+	
+	//Add player to scene
+	m_player->animation(m_pPlayerRunningAnimation);
+	m_player->position(sf::Vector2f(960.f, 950.f)); //TODO: Make a velocity setter that just requires 2 floats
+	m_scene->addObject(m_player);
+
+	//Make a pool of drone missiles
+	m_droneBaseMissile->exclusiveTarget(m_player);
+	m_droneBaseMissile->active(false);
+	m_droneBaseMissile->simulated(true);
+	m_droneBaseMissile->animation(m_pDroneMissileAnimation);
+	m_droneMissiles = new Pool<InvaderMissile>(m_droneBaseMissile, 15);
+
+	//Make a pool of invader missiles
+	m_invaderBaseMissile->exclusiveTarget(m_player);
+	m_invaderBaseMissile->active(false);
+	m_invaderBaseMissile->simulated(true);
+	m_invaderBaseMissile->animation(m_pInvaderMissileAnimation);
+	m_invaderMissiles = new Pool<InvaderMissile>(m_invaderBaseMissile, 15);
+
+	//Make a pool of seeker missiles
+	m_seekerBaseMissile->exclusiveTarget(m_player);
+	m_seekerBaseMissile->active(false);
+	m_seekerBaseMissile->simulated(true);
+	m_seekerBaseMissile->animation(m_pSeekerMissileAnimation);
+	m_seekerMissiles = new Pool<InvaderMissile>(m_seekerBaseMissile, 15);
+
+	//Add all missiles to gameloop and then release
+	auto l_droneMissiles = m_droneMissiles->activeAddresses(nullptr);
+	for (int i = 0; i < m_droneMissiles->size(); i++) m_scene->addObject(l_droneMissiles[i]);
+	auto l_invaderMissiles = m_invaderMissiles->activeAddresses(nullptr);
+	for (int i = 0; i < m_invaderMissiles->size(); i++) m_scene->addObject(l_invaderMissiles[i]);
+	auto l_seekerMissiles = m_seekerMissiles->activeAddresses(nullptr);
+	for (int i = 0; i < m_seekerMissiles->size(); i++) m_scene->addObject(l_seekerMissiles[i]);
+
+	//Make pool of drones
+	Drone l_drone;
+	l_drone.position(sf::Vector2f(500.f, 200.f));
+	l_drone.velocity(sf::Vector2f(420.f, 40.f));
+	m_drones = new Pool<Drone>(&l_drone, 10);
+
+	//Make pool of invaders
+	Invader l_invader;
+	l_invader.animation(m_pInvaderRunningAnimation);
+	l_invader.position(sf::Vector2f(500.f, 200.f));
+	l_invader.velocity(sf::Vector2f(420.f, 40.f));
+	m_invaders = new Pool<Invader>(&l_invader, 10);
+
+	//Make pool of seekers
+	Seeker l_seeker;
+	l_seeker.animation(m_pSeekerRunningAnimation);
+	l_seeker.position(sf::Vector2f(500.f, 200.f));
+	l_seeker.velocity(sf::Vector2f(420.f, 40.f));
+	m_seekers = new Pool<Seeker>(&l_seeker, 10);
+}
+
+//Destructor
+NovaCorps::~NovaCorps()
+{
+	//Delete missiles (pool has method of deleting its own contents when destructed)
+	delete m_droneMissiles;
+
+	//Delete Scene (deletes everything added to it, no need to delete m_stars, player, etc)
+	delete m_scene;
+
+	//Delete Stars
+	delete m_stars;
+	delete m_stars2;
+	delete m_stars3;
+
+	//Delete Animations
+	delete m_pPlayerRunningAnimation;
+	delete l_pPlayerRunningAnimState0;
+	delete l_pPlayerRunningAnimState1;
+	delete m_pPlayerDieAnimation;
+	delete m_pPlayerDieAnimState0;
+	delete m_pPlayerDieAnimState1;
+	delete m_pDroneRunningAnimation;
+	delete m_pDroneRunningAnimState0;
+	delete m_pDroneRunningAnimState1;
+	delete m_pDroneDieAnimation;
+	delete m_pDroneDieAnimState0;
+	delete m_pDroneDieAnimState1;
+	delete m_pInvaderRunningAnimation;
+	delete m_pInvaderRunningAnimState0;
+	delete m_pInvaderRunningAnimState1;
+	delete m_pInvaderDieAnimation;
+	delete m_pInvaderDieAnimState0;
+	delete m_pInvaderDieAnimState1;
+	delete m_pSeekerRunningAnimation;
+	delete m_pSeekerRunningAnimState0;
+	delete m_pSeekerRunningAnimState1;
+	delete m_pSeekerDieAnimation;
+	delete m_pSeekerDieAnimState0;
+	delete m_pSeekerDieAnimState1;
+	delete m_pPlayerMissileAnimation;
+	delete m_pPlayerMissileAnimState0;
+	delete m_pPlayerMissileAnimState1;
+	delete m_pDroneMissileAnimation;
+	delete m_pDroneMissileAnimState0;
+	delete m_pDroneMissileAnimState1;
+	delete m_pInvaderMissileAnimation;
+	delete m_pInvaderMissileAnimState0;
+	delete m_pInvaderMissileAnimState1;
+	delete m_pSeekerMissileAnimation;
+	delete m_pSeekerMissileAnimState0;
+	delete m_pSeekerMissileAnimState1;
+	delete m_pTitleAnimation;
+	delete m_pTitleAnimState;
+	delete m_pGameOverAnimation;
+	delete m_pGameOverAnimState;
+	delete m_pParticleAnimation;
+	delete m_pParticleAnimState;
+
+	//Delete wave EventSequence
+	for (auto wave : m_waves)
+	{
+		delete wave;
+	}
+	//delete m_waves;
+	
+	//Delete render window
+	delete m_renderWindow;
+
+}
+
+//Load textures and sounds
+void NovaCorps::load()
+{
+	//Player
+	m_scene->camera().loadTexture("Assets/Images/Player/player0.png");
+	m_scene->camera().loadTexture("Assets/Images/Player/player1.png");
+	m_pPlayerRunningAnimation->addAnimationStep(l_pPlayerRunningAnimState0);
+	m_pPlayerRunningAnimation->addAnimationStep(l_pPlayerRunningAnimState1);
+
+	//Enemies
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Drone/drone0.png");
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Drone/drone1.png");
+	m_pDroneRunningAnimation->addAnimationStep(m_pDroneRunningAnimState0);
+	m_pDroneRunningAnimation->addAnimationStep(m_pDroneRunningAnimState1);
+
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Invader/invader0.png");
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Invader/invader1.png");
+	m_pInvaderRunningAnimation->addAnimationStep(m_pInvaderRunningAnimState0);
+	m_pInvaderRunningAnimation->addAnimationStep(m_pInvaderRunningAnimState1);
+
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Seeker/seeker0.png");
+	m_scene->camera().loadTexture("Assets/Images/Enemies/Seeker/seeker1.png");
+	m_pInvaderRunningAnimation->addAnimationStep(m_pSeekerRunningAnimState0);
+	m_pInvaderRunningAnimation->addAnimationStep(m_pSeekerRunningAnimState1);
+
+	//Missiles
+	m_scene->camera().loadTexture("Assets/Images/Missiles/playerMissile0.png");
+	m_scene->camera().loadTexture("Assets/Images/Missiles/playerMissile1.png");
+	m_pPlayerMissileAnimation->addAnimationStep(m_pPlayerMissileAnimState0);
+	m_pPlayerMissileAnimation->addAnimationStep(m_pPlayerMissileAnimState1);
+
+	m_scene->camera().loadTexture("Assets/Images/Missiles/droneMissile0.png");
+	m_scene->camera().loadTexture("Assets/Images/Missiles/droneMissile1.png");
+	m_pDroneMissileAnimation->addAnimationStep(m_pDroneMissileAnimState0);
+	m_pDroneMissileAnimation->addAnimationStep(m_pDroneMissileAnimState1);
+
+	m_scene->camera().loadTexture("Assets/Images/Missiles/invaderMissile0.png");
+	m_scene->camera().loadTexture("Assets/Images/Missiles/invaderMissile1.png");
+	m_pInvaderMissileAnimation->addAnimationStep(m_pInvaderMissileAnimState0);
+	m_pInvaderMissileAnimation->addAnimationStep(m_pInvaderMissileAnimState1);
+
+	m_scene->camera().loadTexture("Assets/Images/Missiles/seekerMissile0.png");
+	m_scene->camera().loadTexture("Assets/Images/Missiles/seekerMissile1.png");
+	m_pSeekerMissileAnimation->addAnimationStep(m_pSeekerMissileAnimState0);
+	m_pSeekerMissileAnimation->addAnimationStep(m_pSeekerMissileAnimState1);
+
+	//Particles
+	m_scene->camera().loadTexture("Assets/Images/Particles/particle.png");
+	m_pParticleAnimation->addAnimationStep(m_pParticleAnimState);
+
+	//UI
+	m_scene->camera().loadTexture("Assets/Images/UI/title.png");
+	m_pTitleAnimation->addAnimationStep(m_pTitleAnimState);
+	m_scene->camera().loadTexture("Assets/Images/UI/gameOver.png");
+	m_pGameOverAnimation->addAnimationStep(m_pGameOverAnimState);
+
+	//Sounds
+	m_startSound.loadFromFile("Assets/Audio/GameSounds/start.ogg");
+	m_gameOverSound.loadFromFile("Assets/Audio/GameSounds/gameOver.ogg");
+	m_menuStartupSound.loadFromFile("Assets/Audio/GameSounds/menuStartup.ogg");
+	m_playerAppearSound.loadFromFile("Assets/Audio/Characters/Player/appear.ogg");
+	m_invaderAppearSound.loadFromFile("Assets/Audio/Characters/Invader/appear.ogg");
+	m_enemyFireSound.loadFromFile("Assets/Audio/Firing/alienFire.ogg");
+
+	//Music
+	m_titleMusic.openFromFile("Assets/Audio/GameSounds/menuBackground.ogg");
+	m_backgroundMusic.openFromFile("Assets/Audio/GameSounds/background.ogg");
+	
+}
+
+//Setup game for play
+void NovaCorps::setup()
+{
+	//Reset the player lives
+	m_player->lives(3);
+	m_player->active(false);
+
+	//auto m = m_waves[0];
+	m_waves[0] = new EventSequence();
+	m_waves[1] = new EventSequence();
+
+	//TODO: Reset all aliens
+	Event* l_w0e1 = new Event();
+	Event* l_w0e2 = new Event();
+	Event* l_w0e3 = new Event();
+	Event* l_w0e4 = new Event();
+
+	l_w0e1->setInvoke([=](Event* self)
+	{
+		std::cout << "Trying to Slow Down Stars." << std::endl;
+		if (m_stars->lifeTime() < 5.f)  m_stars->scaleSpeed(0.01f);
+		if (m_stars2->lifeTime() < 5.f)  m_stars2->scaleSpeed(0.01f);
+		if (m_stars3->lifeTime() < 5.f)  m_stars3->scaleSpeed(0.01f);
+		return (m_stars->lifeTime() > 5.f && m_stars2->lifeTime() > 5.f && m_stars3->lifeTime() > 5.f);
+	});
+
+	l_w0e3->setInvoke([=](Event* self)
+	{
+		m_titleMusic.setLoop(true);
+		m_titleMusic.play();
+		return true;
+	});
+
+	l_w0e4->setInvoke([=](Event* self)
+	{
+		m_soundManager.setBuffer(m_startSound);
+		m_soundManager.play();
+		return true;
+	});
+
+	l_w0e2->setInvoke([=](Event* self)
+	{
+		std::cout << "Starting Game!" << std::endl;
+		m_titleMusic.stop();
+		m_backgroundMusic.setLoop(true);
+		m_backgroundMusic.play();
+		m_titleCard->active(false);
+		nextRound();
+		return true;
+	});
+
+	m_waves[0]->addEvent(std::chrono::duration<float>(1.f), l_w0e1);
+	m_waves[0]->addEvent(std::chrono::duration<float>(1.5f), l_w0e3);
+	m_waves[0]->addEvent(std::chrono::duration<float>(9.f), l_w0e4);
+	m_waves[0]->addEvent(std::chrono::duration<float>(10.f), l_w0e2);
+
+	Event* l_w1e1 = new Event();
+	Event* l_w1e2 = new Event();
+	Event* l_w1e3 = new Event();
+	Event* l_w1e4 = new Event();
+
+	l_w1e4->setInvoke([=](Event* self) {
+		m_soundManager.setBuffer(m_playerAppearSound);
+		m_soundManager.play(); 
+		m_player->active(true);
+		return true;
+	});
+	l_w1e1->setInvoke([=](Event* self) {
+		std::cout << "New Alien #1!" << std::endl; 
+		Invader* newInvader = m_invaders->getNext();
+		if (newInvader != nullptr)
+		{
+			m_soundManager.setBuffer(m_invaderAppearSound);
+			m_soundManager.play();
+			m_scene->addObject(newInvader);
+			return true;
+		}
+		return false;
+	});
+	l_w1e2->setInvoke([=](Event* self) {
+		std::cout << "New Alien #2!" << std::endl;
+		Invader* newInvader = m_invaders->getNext();
+		if (newInvader != nullptr)
+		{
+			m_soundManager.setBuffer(m_invaderAppearSound);
+			m_soundManager.play();
+			m_scene->addObject(newInvader);
+			return true;
+		}
+		return false;
+	}); 
+	l_w1e3->setInvoke([=](Event* self) {
+		std::cout << "New Alien #3!" << std::endl;
+		Invader* newInvader = m_invaders->getNext();
+		if (newInvader != nullptr)
+		{
+			m_soundManager.setBuffer(m_invaderAppearSound);
+			m_soundManager.play();
+			m_scene->addObject(newInvader);
+			return true;
+		}
+		return false;
+	});
+
+	m_waves[1]->addEvent(std::chrono::duration<float>(5.f), l_w1e1);
+	m_waves[1]->addEvent(std::chrono::duration<float>(10.f), l_w1e2);
+	m_waves[1]->addEvent(std::chrono::duration<float>(15.f), l_w1e3);
+	m_waves[1]->addEvent(std::chrono::duration<float>(2.f), l_w1e4);
+	
+	m_waves[0]->start();
+
+	//Set update time to be right now
+	m_lastUpdate = std::chrono::system_clock::now();
+}
+
+//Update objects
+void NovaCorps::update()
+{
+	//Code to run while program is running
+	while (m_renderWindow->isOpen())
+	{
+		//Rather than the later objects in the vector being updated last and therefore moving further / on a different sync,
+		//update all objects to move the same distance (relative to their velocity) at the same time:
+		const std::chrono::duration<float> l_duration = std::chrono::system_clock::now() - m_lastUpdate;
+		m_deltaTime = l_duration.count();
+
+		//Throttle frame rate to 1000 maximum, otherwise it literally goes into the millions 
+		//That would cause delta time to have weird floating point errors, and make the game crawl at minimum speed
+		if (m_deltaTime > 0.001f)
+		{
+			//Update wave EventSequence
+			m_waves[m_round]->update();
+
+			//Check collisions
+			int l_numberAliens = 0;
+			auto const l_activeAliens = m_invaders->activeAddresses(&l_numberAliens);
+
+			switch (m_gameMode)
+			{
+				//When in the menu
+				case GameMode::menu:
+
+					//Update Stars
+					m_stars->update(m_deltaTime);
+					m_stars2->update(m_deltaTime);
+					m_stars3->update(m_deltaTime);
+
+					break;
+
+				//When playing the game
+				case GameMode::playing:
+
+					//Update Scene
+					m_scene->update(m_deltaTime);
+
+					//Update Stars
+					m_stars->update(m_deltaTime);
+					m_stars2->update(m_deltaTime);
+					m_stars3->update(m_deltaTime);
+
+					//Check collisions
+					if (l_activeAliens != nullptr) //Safety check. Alternative: if (l_numberAliens > 0)
+					{
+						for (l_numberAliens--; l_numberAliens > -1; l_numberAliens--)
+						{
+							if (m_player->checkCollision(l_activeAliens[l_numberAliens]))
+							{
+								//m_renderWindow->setTitle("COLLIDED");
+								m_player->velocity(sf::Vector2f(-m_player->velocity().x, -m_player->velocity().y));
+								l_activeAliens[l_numberAliens]->velocity(sf::Vector2f(-l_activeAliens[l_numberAliens]->velocity().x, -l_activeAliens[l_numberAliens]->velocity().y));
+
+								m_shakeFactor = sf::Vector2f(r::andom(25.f, 200.f), r::andom(25.f, 200.f));
+								m_shakeCam = true;
+							}
+
+							//Add all missiles to gameloop and then release
+							auto l_numMissiles = 0;
+							auto const l_missiles = m_invaderMissiles->activeAddresses(&l_numMissiles);
+							for (l_numMissiles--; l_numMissiles > -1; l_numMissiles--)
+							{
+								if (!l_missiles[l_numMissiles]->active())
+								{
+									m_invaderMissiles->release(l_missiles[l_numMissiles]);
+								}
+							}
+
+							//Make the alien attempt to fire
+							if (l_activeAliens[l_numberAliens]->fire())
+							{
+								//get a missile from the pool --TODO: how to get from NovaCorps.cpp?
+								Missile* l_missile;
+								sf::SoundBuffer* l_soundToPlay;
+								switch (l_activeAliens[l_numberAliens]->missileType())
+								{
+								case MissileType::invader:
+									l_missile = m_invaderMissiles->getNext();
+									l_soundToPlay = &m_enemyFireSound;
+									break;
+								default:
+									l_missile = nullptr;
+									l_soundToPlay = nullptr;
+									break;
+
+								}
+
+								if (l_missile != nullptr)
+								{
+									//position it and set its variables as needed
+									//l_missile->creator(l_activeAliens[i]);
+									l_missile->position(l_activeAliens[l_numberAliens]->position() + l_activeAliens[l_numberAliens]->fireFromOffset());
+									l_missile->velocity(l_activeAliens[l_numberAliens]->fireDirection());
+
+									//Play sound
+									m_soundManager.setBuffer(*l_soundToPlay);
+									m_soundManager.play();
+
+									//Fire the missile
+									l_missile->fire();
+								}
+							}
+
+						}
+					}
+					break;
+
+				//When on the game over screen
+				case GameMode::gameOver:
+
+					break;
+
+				//When quitting out
+				case GameMode::end:
+
+					break;
+
+				default:
+					break;
+			}
+
+			//Reset last update
+			m_lastUpdate = std::chrono::system_clock::now();
+
+			//Increment update cycles this second
+			m_updatesThisSecond++;
+		}
+	}
+}
+
+//Do logic such as input
+void NovaCorps::logic()
+{
+	//Code to run while program is running
+	while (m_renderWindow->isOpen())
+	{
+		switch (m_gameMode)
+		{
+			//When in the menu
+			case GameMode::menu:
+
+				break;
+
+			//When playing the game
+			case GameMode::playing:
+
+				//Move the player around
+				if (m_player->position().x > 50.f && sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+				{
+					//If left key is pressed set velocity as appropriate
+					m_player->velocity(sf::Vector2f(-750.f, 0.f));
+				}
+				else if (m_player->position().x < 1870.f && sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+				{
+					//If right key is pressed set velocity as appropriate
+					m_player->velocity(sf::Vector2f(750.f, 0.f));
+				}
+				else
+				{
+					//If neither key is pressed set velocity as 0
+					m_player->velocity(sf::Vector2f(0.f, 0.f));
+				}
+
+				//Remove lives if player health is below 0
+				if (m_player->health() <= 0.f)
+				{
+					//Subtract a life
+					m_player->lives(m_player->lives() - 1);
+
+					if (m_player->lives() == 0)
+					{
+						//End game
+						gameOver();
+					}
+					else
+					{
+						//TODO: Sequence of restoring the player
+						m_player->health(1);
+					}
+				}
+
+				break;
+
+			//When on the game over screen
+			case GameMode::gameOver:
+
+				break;
+
+			//When quitting out
+			case GameMode::end:
+
+				break;
+
+			default:
+				break;
+		}
+
+		//Update logic cycles this second
+		m_logicThisSecond++;
+	}
+}
+
+//Render objects and screen elements/UI
+void NovaCorps::render()
+{
+	//TODO: pre-object render logic
+	m_renderWindow->clear();
+
+	switch (m_gameMode)
+	{
+		//When in the menu
+		case GameMode::menu:
+
+			//Render stars
+			m_camera->render(*m_stars, true);
+			m_camera->render(*m_stars2, true);
+			m_camera->render(*m_stars3, true);
+
+			//Render the scene TODO: remove when title cards become graphics
+			m_scene->render();
+
+			break;
+
+		//When playing the game
+		case GameMode::playing:
+
+			//Render stars
+			m_camera->render(*m_stars, true);
+			m_camera->render(*m_stars2, true);
+			m_camera->render(*m_stars3, true);
+
+			//Render the scene
+			m_scene->render();
+
+			break;
+
+		//When on the game over screen
+		case GameMode::gameOver:
+
+			break;
+
+		//When quitting out
+		case GameMode::end:
+
+			break;
+
+		default:
+			break;
+	}
+
+	
+	//TODO: post-object render logic
+	m_renderWindow->display();
+
+	/*m_framesThisSecond++;
+	const std::chrono::duration<float> l_diff = std::chrono::system_clock::now() - m_lastSecond;
+	if (l_diff.count() >= 1.f)
+	{
+		std::cout << "\nFrames Per Second, this second:" << m_framesThisSecond << "\nUpdates Per Second, this second:" << m_updatesThisSecond << "\nLogic Cycles Per Second, this second:" << m_logicThisSecond << std::endl;
+		m_lastSecond = std::chrono::system_clock::now();
+		m_framesThisSecond = 0;
+		m_updatesThisSecond = 0;
+		m_logicThisSecond = 0;
+	}*/
+
+}
+
+//Initialises and sets the game running
+void NovaCorps::run()
+{
+	//Setup the game
+	setup();
+
+	//Set game as now running
+	m_gameMode = GameMode::playing;
+
+	//Run the object updates in their own thread
+	NovaCorps* l_self = this;
+
+	//Run the update logic in its own thread
+	std::thread l_updateThread(&NovaCorps::update, this);
+
+	//Run the logic... logic in its own thread
+	std::thread l_logicThread(&NovaCorps::logic, this);
+
+	//Run the render logic in this thread because otherwise SFML throws a fit
+	while (m_renderWindow->isOpen() && m_gameMode != GameMode::end)
+	{
+		//Run through window events and close the window if we need to
+		sf::Event event;
+		while (m_renderWindow->pollEvent(event))
+		{
+			if (event.type == sf::Event::Closed)
+				m_renderWindow->close();
+		}
+
+		render();
+	}
+
+	//yeild for the last few threads
+	l_updateThread.join();
+	l_logicThread.join();
+
+	std::cout << "Game over... somehow?" << std::endl;
+}
+
+//What to do on a gameover
+void NovaCorps::gameOver()
+{
+	//Play gameover sound
+	m_soundManager.setBuffer(m_gameOverSound);
+	m_soundManager.play();
+
+	//Display gameover card
+	m_titleCard->animation(m_pGameOverAnimation);
+	m_titleCard->position(sf::FloatRect(1920.f / 2.f, 1080.f / 2.f, 0.f, 0.f));
+	m_titleCard->active(true);
+
+	//TODO: Update once more so title card shows up. Needs to be changed to just displaying a graphic
+	update();
+
+	//Set mode to gameOver TODO: move to top when above TODO is done
+	m_gameMode = GameMode::gameOver;
+}
+
+//How to move to the next round
+void NovaCorps::nextRound()
+{
+	//Stop this event sequence, resets the sequence
+	m_waves[m_round]->stop();
+
+	//Increment the round counter
+	m_round++;
+
+	//Add another life to the player if round is a multiple of 5
+	m_player->lives(m_player->lives() + 1);
+
+	//Give the player some points
+	m_player->points(m_player->points() + 1000);
+
+	//Start the next wave EventSequence
+	m_waves[m_round]->start();
+}
+
+//Open the menu
+void NovaCorps::menu()
+{
+	//Tell the rest of the game what's going on
+	m_gameMode = GameMode::menu;
+
+	//Set the current round to 0, so the menu startup sequence is played
+	m_waves[m_round]->stop();
+	m_round = 0;
+	m_waves[0]->start();
+
+	//Play title music
+	m_soundManager.setBuffer(m_startSound);
+	m_soundManager.play();
+}
