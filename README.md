@@ -13,5 +13,5 @@ Key features:
 * Custom random number generator
 * Custom events sequence manager
 
-The pooling system can be found at:
+The pooling system can be found in its own repo at:
 https://github.com/flyscript/ObjectPooler
