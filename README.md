@@ -7,7 +7,8 @@ It uses SFML (Simple and Fast Multimedia Library), a multimedia system interface
 
 The game can be run by downloading "NovaCorpsGame" and running the executable, and the source code can be found under "NovaCorps".
 
-Key features:
+### Key Features:
+* Strong object-oriented approach to characters and weapons
 * Custom animation system
 * Custom particle system
 * Custom random number generator
